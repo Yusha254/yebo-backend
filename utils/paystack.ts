@@ -1,14 +1,12 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import fs from "fs";
-import path from "path";
 
-// Dynamically parse .env to bypass stale parent cache during nodemon wrapper
-const envPath = path.resolve(process.cwd(), ".env");
-const envVars = dotenv.parse(fs.readFileSync(envPath));
+// This will load your .env file locally, but gracefully do nothing on Render
+dotenv.config();
 
 const PAYSTACK_URL = "https://api.paystack.co";
-const SECRET_KEY = envVars.PAYSTACK_SECRET_KEY || process.env.PAYSTACK_SECRET_KEY;
+// Now we simply rely on process.env 
+const SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 const paystack = axios.create({
   baseURL: PAYSTACK_URL,
@@ -37,11 +35,11 @@ export const initializeTransaction = async (email: string, amount: number, metad
     return response.data;
   } catch (error: any) {
     if (error.response) {
-       console.error("[PAYSTACK API ERROR] Paystack sent a failure response:");
-       console.error(" - Status:", error.response.status);
-       console.error(" - Data:", JSON.stringify(error.response.data, null, 2));
+      console.error("[PAYSTACK API ERROR] Paystack sent a failure response:");
+      console.error(" - Status:", error.response.status);
+      console.error(" - Data:", JSON.stringify(error.response.data, null, 2));
     } else {
-       console.error("[PAYSTACK API ERROR] Network/Other error:", error.message);
+      console.error("[PAYSTACK API ERROR] Network/Other error:", error.message);
     }
     throw new Error(error.response?.data?.message || "Failed to initialize Paystack transaction");
   }
